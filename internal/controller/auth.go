@@ -45,7 +45,7 @@ func AuthMiddleware(c *gin.Context) {
 	claims, err := validateToken(tokenResponse)
 	if err != nil {
 		c.JSON(401, gin.H{
-			"message": "Invalid token",
+			"message": err.Error(),
 		})
 		c.Abort()
 		return
@@ -126,7 +126,7 @@ func validateToken(tokenResponse Claims) (*Claims, error) {
 		return nil, jwt.ErrSignatureInvalid
 	}
 	if claims.Domain != tokenResponse.Domain || claims.RemoteAddr != tokenResponse.RemoteAddr || claims.UserAgent != tokenResponse.UserAgent {
-		return nil, jwt.ErrSignatureInvalid
+		return nil, jwt.ErrHashUnavailable
 	}
 	return claims, nil
 }
