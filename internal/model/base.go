@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha512"
 	"encoding/hex"
+	"os"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type ConectionDB struct {
 
 func (c *ConectionDB) Open() {
 	var err error
-	c.DB, err = gorm.Open(sqlite.Open("db/development.db"), &gorm.Config{})
+	c.DB, err = gorm.Open(sqlite.Open(os.Getenv("DATABASE")), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
