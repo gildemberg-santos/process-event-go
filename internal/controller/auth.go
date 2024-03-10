@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gildemberg-santos/process-event-go/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
@@ -12,7 +13,7 @@ import (
 var secretKey = []byte(os.Getenv("SECRET_KEY"))
 
 type Claims struct {
-	Username   string `json:"username"`
+	ClientID   string `json:"client_id"`
 	Token      string `json:"token"`
 	Domain     string `json:"domain"`
 	RemoteAddr string `json:"remote_addr"`
@@ -21,8 +22,8 @@ type Claims struct {
 }
 
 type AuthRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ClientID string `json:"client_id"`
+	SecretID string `json:"secret_id"`
 }
 
 func AuthMiddleware(c *gin.Context) {
@@ -51,7 +52,7 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	c.Set("username", claims.Username)
+	c.Set("client_id", claims.ClientID)
 	c.Next()
 }
 
@@ -64,17 +65,28 @@ func Auth(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	var credential model.Credential
+	conection := model.ConectionDB{}
+	conection.Open()
+	result := conection.DB.Find(&credential, "client_id = ?", authRequest.ClientID, "secret_id = ?", authRequest.SecretID)
+	if result.Error != nil {
+		c.JSON(500, gin.H{
+			"message": "Internal server error",
+		})
+		c.Abort()
+		return
+	}
 
-	if authRequest.Username != os.Getenv("USER_NAME") || authRequest.Password != os.Getenv("USER_PASSWORD") {
+	if authRequest.ClientID != credential.ClientID || authRequest.SecretID != credential.SecretID {
 		c.JSON(401, gin.H{
-			"message": "Invalid username or password",
+			"message": "Invalid client_id or secret_id",
 		})
 		c.Abort()
 		return
 	}
 
 	tokenResponse := Claims{
-		Username:   authRequest.Username,
+		ClientID:   authRequest.ClientID,
 		Domain:     c.Request.Host,
 		RemoteAddr: c.Request.RemoteAddr,
 		UserAgent:  c.Request.UserAgent(),
@@ -101,7 +113,7 @@ func generateToken(tokenResponse Claims) (string, error) {
 	}
 	expirationTime := time.Now().Add(time.Duration(minute) * time.Minute)
 	claims := &Claims{
-		Username:   tokenResponse.Username,
+		ClientID:   tokenResponse.ClientID,
 		Domain:     tokenResponse.Domain,
 		RemoteAddr: tokenResponse.RemoteAddr,
 		UserAgent:  tokenResponse.UserAgent,

@@ -1,14 +1,7 @@
 package main
 
-import (
-	"github.com/gildemberg-santos/process-event-go/internal/router"
-	"github.com/joho/godotenv"
-)
-
-func init() {
-	godotenv.Load()
-}
+import initialize "github.com/gildemberg-santos/process-event-go/internal/init"
 
 func main() {
-	router.NewRoute().Run()
+	initialize.Run()
 }
