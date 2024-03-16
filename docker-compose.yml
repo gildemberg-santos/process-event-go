@@ -12,7 +12,7 @@ services:
       - clickhouse
     environment:
       - GIN_MODE=release
-      - PORT=5000
+      - PORT=8000
       - SECRET_KEY=token
       - EXPIRATION_TIME=10
       - DATABASE=file::memory:?cache=shared
@@ -20,6 +20,15 @@ services:
       - CLICKHOUSE_PORT=9000
       - CLICKHOUSE_USER=clickhouse
       - CLICKHOUSE_PASSWORD=clickhouse
+    deploy:
+      resources:
+        limits:
+          cpus: '0.01'
+          memory: 50M
+        reservations:
+          cpus: '0.001'
+          memory: 20M
+
 
   clickhouse:
     image: yandex/clickhouse-server
@@ -33,3 +42,28 @@ services:
       - CLICKHOUSE_PASSWORD=clickhouse
       - CLICKHOUSE_HTTP_PORT=8123
       - CLICKHOUSE_TCP_PORT=9000
+    deploy:
+      resources:
+        limits:
+          cpus: '0.01'
+          memory: 50M
+        reservations:
+          cpus: '0.001'
+          memory: 20M
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis:/data
+    environment:
+      - REDIS_PASSWORD=redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.01'
+          memory: 50M
+        reservations:
+          cpus: '0.001'
+          memory: 20M

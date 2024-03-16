@@ -8,6 +8,8 @@ RUN go mod download && go mod verify
 
 COPY . .
 
+RUN rm -rf .env
+
 RUN go build -v -o bin/app ./cmd/main.go
 
 CMD ["./bin/app"]
