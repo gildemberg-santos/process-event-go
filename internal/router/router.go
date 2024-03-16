@@ -1,8 +1,6 @@
 package router
 
 import (
-	"time"
-
 	"github.com/gildemberg-santos/process-event-go/internal/controller"
 	"github.com/gin-gonic/gin"
 )
@@ -25,10 +23,6 @@ func (r *Router) setting() {
 func (r *Router) Run() {
 	r.Route.POST("/login", controller.Auth)
 	r.setting()
-	r.Route.GET("/", controller.Home)
-	r.Route.GET("/sleep", func(ctx *gin.Context) {
-		time.Sleep(60 * time.Second)
-		ctx.JSON(200, gin.H{"message": "sleep"})
-	})
+	r.Route.GET("/event", controller.EventController)
 	r.Route.Run()
 }

@@ -65,17 +65,8 @@ func Auth(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	var credential model.Credential
-	conection := model.ConectionDB{}
-	conection.Open()
-	result := conection.DB.Find(&credential, "client_id = ?", authRequest.ClientID, "secret_id = ?", authRequest.SecretID)
-	if result.Error != nil {
-		c.JSON(500, gin.H{
-			"message": "Internal server error",
-		})
-		c.Abort()
-		return
-	}
+
+	credential := model.NewCredential()
 
 	if authRequest.ClientID != credential.ClientID || authRequest.SecretID != credential.SecretID {
 		c.JSON(401, gin.H{

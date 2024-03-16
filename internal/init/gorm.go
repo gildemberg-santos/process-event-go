@@ -11,7 +11,5 @@ func runGorm() {
 	db := model.ConectionDB{}
 	db.Open()
 	db.Migrate(model.Credential{})
-	credential := InitCredential()
-	db.Seed(credential)
 	db.Close()
 }
