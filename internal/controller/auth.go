@@ -13,11 +13,8 @@ import (
 var secretKey = []byte(os.Getenv("SECRET_KEY"))
 
 type Claims struct {
-	ClientID   string `json:"client_id"`
-	Token      string `json:"token"`
-	Domain     string `json:"domain"`
-	RemoteAddr string `json:"remote_addr"`
-	UserAgent  string `json:"user_agent"`
+	ClientID string `json:"client_id"`
+	Token    string `json:"token"`
 	jwt.StandardClaims
 }
 
@@ -36,14 +33,7 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	tokenResponse := Claims{
-		Token:      tknStr,
-		Domain:     c.Request.Host,
-		RemoteAddr: c.Request.RemoteAddr,
-		UserAgent:  c.Request.UserAgent(),
-	}
-
-	claims, err := validateToken(tokenResponse)
+	claims, err := validateToken(tknStr)
 	if err != nil {
 		c.JSON(401, gin.H{
 			"message": err.Error(),
@@ -76,14 +66,9 @@ func Auth(c *gin.Context) {
 		return
 	}
 
-	tokenResponse := Claims{
-		ClientID:   authRequest.ClientID,
-		Domain:     c.Request.Host,
-		RemoteAddr: c.Request.RemoteAddr,
-		UserAgent:  c.Request.UserAgent(),
-	}
+	tknStr := authRequest.ClientID
 
-	token, err := generateToken(tokenResponse)
+	token, err := generateToken(tknStr)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Internal server error",
@@ -97,17 +82,14 @@ func Auth(c *gin.Context) {
 	})
 }
 
-func generateToken(tokenResponse Claims) (string, error) {
+func generateToken(tknStr string) (string, error) {
 	minute, err := strconv.Atoi(os.Getenv("EXPIRATION_TIME"))
 	if err != nil {
 		return "", err
 	}
 	expirationTime := time.Now().Add(time.Duration(minute) * time.Minute)
 	claims := &Claims{
-		ClientID:   tokenResponse.ClientID,
-		Domain:     tokenResponse.Domain,
-		RemoteAddr: tokenResponse.RemoteAddr,
-		UserAgent:  tokenResponse.UserAgent,
+		ClientID: tknStr,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -117,9 +99,9 @@ func generateToken(tokenResponse Claims) (string, error) {
 	return token.SignedString(secretKey)
 }
 
-func validateToken(tokenResponse Claims) (*Claims, error) {
+func validateToken(tknStr string) (*Claims, error) {
 	claims := &Claims{}
-	tkn, err := jwt.ParseWithClaims(tokenResponse.Token, claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 	if err != nil {
@@ -127,9 +109,6 @@ func validateToken(tokenResponse Claims) (*Claims, error) {
 	}
 	if !tkn.Valid {
 		return nil, jwt.ErrSignatureInvalid
-	}
-	if claims.Domain != tokenResponse.Domain || claims.RemoteAddr != tokenResponse.RemoteAddr || claims.UserAgent != tokenResponse.UserAgent {
-		return nil, jwt.ErrHashUnavailable
 	}
 	return claims, nil
 }
