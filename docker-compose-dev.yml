@@ -1,35 +1,6 @@
 version: '3.7'
 
 services:
-  web:
-    build: .
-    ports:
-      - "5000:5000"
-    volumes:
-      - .:/web
-      - ./web:/web
-    depends_on:
-      - clickhouse
-      - redis
-    environment:
-      - GIN_MODE=release
-      - PORT=8000
-      - SECRET_KEY=token
-      - EXPIRATION_TIME=10
-      - DATABASE=file::memory:?cache=shared
-      - CLICKHOUSE_HOST=clickhouse
-      - CLICKHOUSE_PORT=9000
-      - CLICKHOUSE_USER=clickhouse
-      - CLICKHOUSE_PASSWORD=clickhouse
-    deploy:
-      resources:
-        limits:
-          cpus: '0.01'
-          memory: 50M
-        reservations:
-          cpus: '0.001'
-          memory: 20M
-
   clickhouse:
     image: yandex/clickhouse-server
     ports:
