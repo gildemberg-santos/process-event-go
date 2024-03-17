@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gildemberg-santos/process-event-go/internal/model"
+	"github.com/gildemberg-santos/process-event-go/internal/entity"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
@@ -56,7 +56,7 @@ func Auth(c *gin.Context) {
 		return
 	}
 
-	credential := model.NewCredential()
+	credential := entity.NewCredential()
 
 	if authRequest.ClientID != credential.ClientID || authRequest.SecretID != credential.SecretID {
 		c.JSON(401, gin.H{
